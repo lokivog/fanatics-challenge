@@ -6,9 +6,6 @@
 
 ```bash
 yarn install
-yarn build
-yarn start
-yarn test
 ```
 
 ## Running
@@ -20,10 +17,9 @@ yarn test
 ```bash
 yarn build
 yarn start
-yarn test
 ```
 
-## Test
+## Testing
 
 ```bash
 yarn test
