@@ -7,7 +7,7 @@ import { ConfigurationService } from '../../../../config/ConfigurationService';
 import { User } from '../../model/GraphQL';
 import { GraphQLService } from '../GraphQLService';
 
-
+//CONSTANTS
 const getUsersSuccessResponse = require('./data/getUsersSuccessResponse.json');
 const getUserSuccessResponse = require('./data/getUserSuccessResponse.json');
 const getUserErrorResponse = require('./data/getUserSuccessResponse.json');
@@ -15,6 +15,7 @@ const updateUserSuccessResponse = require('./data/updateUserSuccessResponse.json
 const sortedUsersByName = require('./data/sortedUsersByName.json');
 const sortedUsersById = require('./data/sortedUsersById.json');
 
+//setup axios for mock calls
 jest.mock('axios', () => jest.fn());
 
 describe('GraphQLService tests', () => {
@@ -34,12 +35,37 @@ describe('GraphQLService tests', () => {
 
 
     it('should get users on page 3', async () => {
-        const mRes = { status: 200, data: getUsersSuccessResponse };
+        const mRes = {
+            status: 200, data: getUsersSuccessResponse, headers: {
+                'x-pagination-total': 3700,
+                'x-pagination-limit': 10,
+                'x-pagination-page': 3,
+                'x-pagination-pages': 370
+            }
+        };
         (axios as unknown as jest.Mock).mockResolvedValueOnce(mRes);
 
         const userResponse = await service.getUsersAtPage(3);
 
-        expect(userResponse.length).toEqual(10);
+        expect(userResponse.users.length).toEqual(10);
+    });
+
+    it('should get pagniation information', async () => {
+        const mRes = {
+            status: 200, data: getUsersSuccessResponse, headers: {
+                'x-pagination-total': 3700,
+                'x-pagination-limit': 10,
+                'x-pagination-page': 3,
+                'x-pagination-pages': 370
+            }
+        };
+        (axios as unknown as jest.Mock).mockResolvedValueOnce(mRes);
+
+        const userResponse = await service.getUsersAtPage(3);
+        expect(userResponse.pagination?.totalResults).toEqual(3700);
+        expect(userResponse.pagination?.totalPages).toEqual(370);
+        expect(userResponse.pagination?.currentPage).toEqual(3);
+        expect(userResponse.pagination?.resultsPerPage).toEqual(10);
     });
 
     it('should get user', async () => {

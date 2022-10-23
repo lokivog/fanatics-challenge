@@ -2,13 +2,19 @@ import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { Provider } from "nconf";
 import { Logger } from "winston";
 import { AxiosErrorHandler } from "../../../logging/AxiosErrorHandler";
-import { PageParam, User, UserKeys } from "../model/GraphQL";
+import { PageParam, PAGE_RANGE, User, UserKeys, UserResults } from "../model/GraphQL";
 
+//CONSTANTS
 const USERS_ENDPOINT = "/public/v2/users";
 const DEFAULT_SORT_BY_ID = 'id';
+const DEFAULT_RESULTS_PER_PAGE = 10;
+const HEADER_X_PAGINATION_TOTAL = 'x-pagination-total';
+const HEADER_X_PAGINATION_PAGES = 'x-pagination-pages';
+const HEADER_X_PAGINATION_PAGE = 'x-pagination-page';
+const HEADER_X_PAGINATION_LIMIT = 'x-pagination-limit';
 
 /**
- * Service class for accessing GraphQLService
+ * Service class for accessing GraphQL gorest service. 
  */
 export class GraphQLService {
 
@@ -56,6 +62,11 @@ export class GraphQLService {
         return [];
     }
 
+    /**
+     * Gets a user by specified id.
+     * @param pId id of the user to retrieve
+     * @returns User if found; otherwise null
+     */
     public async getUser(pId: number): Promise<User | null> {
 
         let user: User | null = null;
@@ -74,7 +85,7 @@ export class GraphQLService {
                     this.logger.debug(`getUser response: %s %s`, pId, response.data);
                     user = response.data;
                 } else {
-                    this.logger.error(`getUser failed with status: ${response.status}`);
+                    this.logger.warn(`getUser failed with status: ${response.status}`);
                 }
 
             });
@@ -90,16 +101,30 @@ export class GraphQLService {
         return user;
     }
 
-    public async getUsersAtPage(pageNumber: number): Promise<User[]> {
-        const params = { page: pageNumber };
-        const users: User[] = await this.getUsers(params);
-        return users;
+    /**
+     * Gets a list of users by page number. Optional resultsPerPage.
+     * @param pPageNumber current page number to retreive
+     * @param pResultsPerPage (optional) max results per page (max 100 results per page)
+     * @returns 
+     */
+    public async getUsersAtPage(pPageNumber: number, pResultsPerPage?: PAGE_RANGE): Promise<UserResults> {
+        const resultsPerPage = pResultsPerPage ? pResultsPerPage : DEFAULT_RESULTS_PER_PAGE;
+        const params = { page: pPageNumber, per_page: resultsPerPage };
+        const userResults: UserResults = await this.getUsers(params);
+        return userResults;
     }
 
 
-    public async getUsers(pParams: PageParam): Promise<User[]> {
+    /**
+     * Get a list of users.
+     * @param pParams PageParam (optional), can be one of: page | per_page
+     * @returns 
+     */
+    public async getUsers(pParams?: PageParam): Promise<UserResults> {
 
-        let users: User[] = [];
+        const userResults: UserResults = {
+            users: []
+        };
         const options: AxiosRequestConfig = {
             method: 'GET',
             url: `${this.url}/${USERS_ENDPOINT}`,
@@ -113,11 +138,13 @@ export class GraphQLService {
         try {
             await axios<User[]>(options).then(response => {
                 if (response.status === 200 && response.data) {
+                    this.logger.debug("getUsers response headers %s", JSON.stringify(response.headers));
                     this.logger.debug('getUsers response %s', JSON.stringify(response.data));
-                    users = response.data;
+                    userResults.users = response.data;
+                    userResults.pagination = this.buildPagination(response.headers);
                 } else {
                     if (response && response.status) {
-                        this.logger.error(`getUsers failed with status: ${response.status}`);
+                        this.logger.warn(`getUsers failed with status: ${response.status}`);
                     } else {
                         this.logger.error(`getUsers failed with response: ${response}`);
                     }
@@ -127,10 +154,14 @@ export class GraphQLService {
         } catch (error: unknown | AxiosError) {
             AxiosErrorHandler.handleError(error, 'getUsers', this.logger);
         }
-
-        return users;
+        return userResults;
     }
 
+    /**
+     * Updates a user.
+     * @param pUserUpdate the User to update
+     * @returns User the updated user if successfull; otherwise null if failed
+     */
     public async updateUser(pUserUpdate: Partial<User>): Promise<User | null> {
 
         let user: Partial<User> | null = null;
@@ -150,9 +181,8 @@ export class GraphQLService {
                 if (response.status === 200 && response.data) {
                     this.logger.debug(`updateUser response for user ${pUserUpdate.id} %s`, response.data);
                     user = response.data;
-
                 } else {
-                    this.logger.error(`updateUser failed with status: ${response.status}`);
+                    this.logger.warn(`updateUser failed with status: ${response.status}`);
                 }
 
             });
@@ -163,6 +193,11 @@ export class GraphQLService {
         return user;
     }
 
+    /**
+     * Deletes a user.
+     * @param pUserId user id to delete
+     * @returns boolean if successful or not
+     */
     public async deleteUser(pUserId: number): Promise<boolean> {
 
         let success = false;
@@ -181,7 +216,7 @@ export class GraphQLService {
                 if (response.status === 204) {
                     success = true;
                 } else {
-                    this.logger.error(`deleteUser failed with status: ${response.status} ${response.data}`);
+                    this.logger.warn(`deleteUser failed with status: ${response.status} ${response.data}`);
                 }
             });
         } catch (error: unknown | AxiosError) {
@@ -189,5 +224,20 @@ export class GraphQLService {
         }
 
         return success;
+    }
+
+    /**
+     * Builds a Pagination Object from a response header.
+     * @param response http response
+     * @returns Pagination
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private buildPagination(pResponse: any) {
+        return {
+            totalResults: pResponse[HEADER_X_PAGINATION_TOTAL],
+            totalPages: pResponse[HEADER_X_PAGINATION_PAGES],
+            currentPage: pResponse[HEADER_X_PAGINATION_PAGE],
+            resultsPerPage: pResponse[HEADER_X_PAGINATION_LIMIT]
+        }
     }
 }

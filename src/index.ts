@@ -36,17 +36,17 @@ const NON_EXISTENT_USER = 5555;
 async function fantaticsCodingChallenge() {
 
     // 1. Retrieve page 3 of the list of all users.
-    const users = await service.getUsersAtPage(3);
-    if (users && users.length > 0) {
+    const userResults = await service.getUsersAtPage(3);
+    if (userResults.users.length > 0) {
         //2. Using a logger, log the total number of pages from the previous request.
-        logger.info(`Total number of users retrieved: ${users.length}`);
+        logger.info(`2. Total number of pages retrieved: ${userResults.pagination?.totalPages}`);
 
         //3. Sort the retrieved user list by name.
-        service.sortUsers(users, "name");
+        service.sortUsers(userResults.users, "name");
 
         //4. After sorting, log the name of the last user.
-        const lastUser = users.pop();
-        logger.info(`Last user in array: ${lastUser?.name}`);
+        const lastUser = userResults.users.pop();
+        logger.info(`4. Last user in array: ${lastUser?.name}`);
 
         //5. Update that user's name to a new value and use the correct http method to save it.
         const updateUser: Partial<User> = { 'name': 'Alex Smith', id: lastUser?.id };
@@ -56,7 +56,7 @@ async function fantaticsCodingChallenge() {
             //logger.info(`Updated user ${JSON.stringify(updateUserResult)}`);
             //6. Delete that user.
             const deleteSuccess = await service.deleteUser(updateUserResult.id);
-            logger.info(`Delete user ${updateUserResult.name} success: ${deleteSuccess}`);
+            logger.info(`6. Delete user ${updateUserResult.name} success: ${deleteSuccess}`);
 
             //7. Attempt to retrieve a nonexistent user with ID 5555. Log the resulting http response code.
             await service.getUser(NON_EXISTENT_USER);
