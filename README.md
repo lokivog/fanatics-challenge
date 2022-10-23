@@ -11,6 +11,24 @@ yarn start
 yarn test
 ```
 
+## Running
+
+1. Get an access token at https://gorest.co.in/
+2. Copy .env.example to .env
+3. Set your access token in .env
+
+```bash
+yarn build
+yarn start
+yarn test
+```
+
+## Test
+
+```bash
+yarn test
+```
+
 ## Documentation
 
 This Node App performs the following:

@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
+    "test:cov": "jest --coverage",
     "compile": "tsc -p .",
     "copy-files": "copyfiles -u 1 src/**/*.json build/",
     "build": "rimraf ./build && tsc && yarn run copy-files",
