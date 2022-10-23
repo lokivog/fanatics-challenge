@@ -4,8 +4,8 @@ import axios from 'axios';
 import { Logger } from 'winston';
 import { createDefaultLogger } from '../../../..';
 import { ConfigurationService } from '../../../../config/ConfigurationService';
-import { User } from '../../model/GraphQL';
-import { GraphQLService } from '../GraphQLService';
+import { User } from '../../model/GoRest';
+import { GoRestService } from '../GoRestService';
 
 //CONSTANTS
 const getUsersSuccessResponse = require('./data/getUsersSuccessResponse.json');
@@ -18,14 +18,14 @@ const sortedUsersById = require('./data/sortedUsersById.json');
 //setup axios for mock calls
 jest.mock('axios', () => jest.fn());
 
-describe('GraphQLService tests', () => {
-    let service: GraphQLService;
+describe('GoRestService tests', () => {
+    let service: GoRestService;
     let logger: Logger;
 
     beforeAll(() => {
         logger = createDefaultLogger();
         const config: ConfigurationService = new ConfigurationService();
-        service = new GraphQLService(logger, config.getConfiguration());
+        service = new GoRestService(logger, config.getConfiguration());
     });
 
 

@@ -2,7 +2,7 @@ import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { Provider } from "nconf";
 import { Logger } from "winston";
 import { AxiosErrorHandler } from "../../../logging/AxiosErrorHandler";
-import { PageParam, PAGE_RANGE, User, UserKeys, UserResults } from "../model/GraphQL";
+import { PageParam, PAGE_RANGE, User, UserKeys, UserResults } from "../model/GoRest";
 
 //CONSTANTS
 const USERS_ENDPOINT = "/public/v2/users";
@@ -14,9 +14,9 @@ const HEADER_X_PAGINATION_PAGE = 'x-pagination-page';
 const HEADER_X_PAGINATION_LIMIT = 'x-pagination-limit';
 
 /**
- * Service class for accessing GraphQL gorest service. 
+ * Service class for accessing GoRest gorest service. 
  */
-export class GraphQLService {
+export class GoRestService {
 
     private logger: Logger;
     private config: Provider;
@@ -24,7 +24,7 @@ export class GraphQLService {
     private accessToken: string;
 
     /**
-     * init GraphQLService
+     * init GoRestService
      * @param logger winston logger
      * @param config ConfigurationService
      */

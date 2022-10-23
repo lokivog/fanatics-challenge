@@ -1,8 +1,8 @@
 "use strict";
 import winston, { Logger, format } from 'winston';
 import { ConfigurationService } from './config/ConfigurationService';
-import { User } from "./modules/graphQL/model/GraphQL";
-import { GraphQLService } from './modules/graphQL/service/GraphQLService';
+import { User } from "./modules/goRest/model/GoRest";
+import { GoRestService } from './modules/goRest/service/GoRestService';
 const { combine, colorize, label, timestamp, printf } = format;
 
 const loggerFormat = format.combine(
@@ -28,7 +28,7 @@ export function createDefaultLogger(): Logger {
 
 const logger: Logger = createDefaultLogger();
 const config: ConfigurationService = new ConfigurationService();
-const service: GraphQLService = new GraphQLService(logger, config.getConfiguration());
+const service: GoRestService = new GoRestService(logger, config.getConfiguration());
 
 
 const NON_EXISTENT_USER = 5555;
