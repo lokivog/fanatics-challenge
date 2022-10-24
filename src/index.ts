@@ -1,30 +1,10 @@
 "use strict";
-import winston, { Logger, format } from 'winston';
+import { Logger } from 'winston';
 import { ConfigurationService } from './config/ConfigurationService';
+import { createDefaultLogger } from './logging/LoggingService';
 import { User } from "./modules/goRest/model/GoRest";
 import { GoRestService } from './modules/goRest/service/GoRestService';
-const { combine, colorize, label, timestamp, printf } = format;
 
-const loggerFormat = format.combine(
-    colorize({ all: true }),
-    label({ label: '[LOGGER]' }),
-    timestamp({ format: 'YY-MM-DD HH:MM:SS' }),
-    printf(
-        (info) =>
-            ` ${info.label}  ${info.timestamp}  ${info.level} : ${info.message}`
-    )
-);
-
-export function createDefaultLogger(): Logger {
-    return winston.createLogger({
-        level: 'info',
-        format: combine(
-            format.splat(),
-            format.json()
-        ),
-        transports: [new winston.transports.Console({ format: combine(loggerFormat) })]
-    })
-}
 
 const logger: Logger = createDefaultLogger();
 const config: ConfigurationService = new ConfigurationService();
@@ -34,7 +14,7 @@ const service: GoRestService = new GoRestService(logger, config.getConfiguration
 const NON_EXISTENT_USER = 5555;
 
 async function fantaticsCodingChallenge() {
-
+    //logger.info("fantaticsCodingChallenge");
     // 1. Retrieve page 3 of the list of all users.
     const userResults = await service.getUsersAtPage(3);
     if (userResults.users.length > 0) {
@@ -53,7 +33,7 @@ async function fantaticsCodingChallenge() {
         const updateUserResult = await service.updateUser(updateUser);
 
         if (updateUserResult) {
-            //logger.info(`Updated user ${JSON.stringify(updateUserResult)}`);
+            logger.info(`5. Updated user ${JSON.stringify(updateUserResult)}`);
             //6. Delete that user.
             const deleteSuccess = await service.deleteUser(updateUserResult.id);
             logger.info(`6. Delete user ${updateUserResult.name} success: ${deleteSuccess}`);
